@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Solo hoy...</title>
+<meta name="theme-color" content="#050b1a">
+<meta property="og:title" content="Solo hoy...">
+<meta property="og:description" content="Hay algo esperando por ti.">
+<style>
+:root{--bg:#050b1a;--pink:#ef6680;--gold:#f3c58b;--ink:#f7e6ce}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:Georgia,'Times New Roman',serif;overflow-x:hidden}
+body{min-height:100svh;background:radial-gradient(circle at 15% 15%,rgba(245,183,106,.08),transparent 22%),radial-gradient(circle at 85% 25%,rgba(239,102,128,.08),transparent 20%),linear-gradient(180deg,#030815,#071024 65%,#040914)}
+#stars{position:fixed;inset:0;pointer-events:none;overflow:hidden;opacity:.8;z-index:0}
+.star{position:absolute;width:3px;height:3px;border-radius:50%;background:#f7d49a;box-shadow:0 0 8px #f7d49a;animation:tw 2.8s ease-in-out infinite}
+@keyframes tw{50%{opacity:.2;transform:scale(.65)}}
+.app{min-height:100svh;display:flex;align-items:center;justify-content:center;padding:12px;position:relative;z-index:2}
+.stage{width:min(96vw,960px);display:flex;flex-direction:column;align-items:center;gap:12px}
+.card{position:relative;width:auto;max-width:100%;height:auto;border:1px solid rgba(230,151,92,.42);border-radius:20px;overflow:hidden;background:#071020;box-shadow:0 24px 70px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.015) inset;opacity:0;transform:translateY(12px) scale(.985);transition:.55s ease;display:flex;align-items:center;justify-content:center}
+.card.show{opacity:1;transform:none}
+.card img{display:block;max-width:100%;max-height:78svh;width:auto;height:auto;object-fit:contain;user-select:none;-webkit-user-drag:none;background:#071020}
+.tap-layer{position:absolute;inset:0;border:0;background:transparent;cursor:pointer}
+#wake{display:none}
+.hint{font-family:system-ui,-apple-system,Segoe UI,sans-serif;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.58);opacity:0;transition:.4s}.hint.on{opacity:1}
+.controls{display:flex;gap:9px;align-items:center;justify-content:center;min-height:40px;flex-wrap:wrap}
+.control{border:1px solid rgba(239,102,128,.35);background:rgba(239,102,128,.08);color:#ffdbe2;border-radius:999px;padding:9px 14px;font:600 12px system-ui,-apple-system,Segoe UI,sans-serif;cursor:pointer}.control:hover{background:rgba(239,102,128,.14)}
+#replay{display:none}#musicBtn{display:none}#wakeBtn{display:inline-block;font-size:14px;padding:11px 18px;background:linear-gradient(135deg,#ef6680,#cf4e68);color:#fff;border-color:rgba(255,255,255,.16);box-shadow:0 8px 24px rgba(239,102,128,.22)}
+.confetti{position:fixed;z-index:8;top:-14px;width:9px;height:14px;border-radius:2px;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translate3d(var(--dx),110vh,0) rotate(720deg);opacity:.25}}
+.fade-cover{position:fixed;inset:0;background:#050b1a;z-index:4;pointer-events:none;opacity:0;transition:opacity .28s}.fade-cover.on{opacity:1}
+/* Estrellas que se reúnen al final. Se dibujan sobre la escena y luego vuelven a desaparecer. */
+#wordStars{position:fixed;inset:0;z-index:12;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .45s ease}
+#wordStars.on{opacity:1}
+.word-star{position:absolute;left:0;top:0;width:4px;height:4px;border-radius:50%;background:#fff2c7;box-shadow:0 0 5px #fff2c7,0 0 12px #f3c58b,0 0 18px rgba(239,102,128,.55);will-change:transform,opacity;transition:transform 1.15s cubic-bezier(.2,.72,.2,1),opacity .6s ease;animation:pulseStar 1.4s ease-in-out infinite alternate}
+@keyframes pulseStar{to{filter:brightness(1.5);opacity:.72}}
+@media(max-width:600px){html,body{min-height:100%;}.app{min-height:100svh;display:flex;align-items:flex-start;justify-content:center;padding:clamp(18px,5svh,52px) 6px 18px}.stage{width:100%;gap:14px}.card{width:100%;max-width:100%;height:auto;border-radius:14px;touch-action:manipulation}.card img{display:block;width:100%;height:auto;max-width:none;max-height:none;object-fit:contain}.tap-layer{touch-action:manipulation}.hint{font-size:10px}.controls{width:100%;gap:10px}.control{font-size:11px;padding:10px 13px;touch-action:manipulation}.word-star{width:3px;height:3px}#wakeBtn{font-size:14px;padding:13px 20px;min-height:48px}}
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div id="wordStars" aria-hidden="true"></div>
+<div id="fade" class="fade-cover"></div>
+<div class="app">
+  <main class="stage">
+    <section class="card" id="card" aria-live="polite">
+      <img id="scene" src="assets/01_dormido.png" alt="Sorpresa de cumpleaños con un gatito">
+      <button id="wake" aria-label="Despertar al gordito"></button>
+      <button id="tap" class="tap-layer" aria-label="Continuar" style="display:none"></button>
+    </section>
+    <div id="hint" class="hint">Toca para continuar ✨</div>
+    <div class="controls">
+      <button id="wakeBtn" class="control">Despertar al gordito 🐾</button>
+      <button id="musicBtn" class="control">♫ Música</button>
+      <button id="replay" class="control">↻ Volver a ver</button>
+    </div>
+  </main>
+</div>
+<audio id="music" src="musica.mp3" loop preload="auto"></audio>
+<script>
+const scenes=[
+  'assets/01_dormido.png','assets/02_despertar.png','assets/03_cumple.png',
+  'assets/04_mensaje.png','assets/05_personal.png','assets/06_cierre.png'
+];
+const img=document.getElementById('scene'),card=document.getElementById('card'),wake=document.getElementById('wake'),wakeBtn=document.getElementById('wakeBtn'),tap=document.getElementById('tap'),hint=document.getElementById('hint'),fade=document.getElementById('fade'),replay=document.getElementById('replay'),music=document.getElementById('music'),musicBtn=document.getElementById('musicBtn'),wordBox=document.getElementById('wordStars');
+let step=0,canTap=false,wordTimers=[];
+
+function makeBackgroundStars(){
+  const box=document.getElementById('stars');
+  for(let i=0;i<70;i++){
+    const s=document.createElement('i');s.className='star';
+    s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';
+    s.style.animationDelay=(Math.random()*3)+'s';s.style.opacity=.25+Math.random()*.7;
+    box.appendChild(s);
+  }
+}
+makeBackgroundStars();
+requestAnimationFrame(()=>card.classList.add('show'));
+
+function clearWordTimers(){wordTimers.forEach(clearTimeout);wordTimers=[]}
+function clearWordStars(){clearWordTimers();wordBox.classList.remove('on');wordBox.innerHTML=''}
+
+function buildPointCloud(text){
+  const W=900,H=260,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+  let size=text.length>13?76:text.length>8?104:146;
+  ctx.font=`800 ${size}px Arial, Helvetica, sans-serif`;
+  ctx.fillText(text,W/2,H/2);
+  const data=ctx.getImageData(0,0,W,H).data,pts=[];
+  const stride=text.length>13?7:6;
+  for(let y=5;y<H-5;y+=stride){for(let x=5;x<W-5;x+=stride){if(data[(y*W+x)*4+3]>80)pts.push({x,y})}}
+  // Mezclar para que la distribución no siga líneas de barrido.
+  for(let i=pts.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pts[i],pts[j]]=[pts[j],pts[i]]}
+  return {pts,W,H};
+}
+
+function ensureWordStars(count=420){
+  if(wordBox.children.length===count)return;
+  wordBox.innerHTML='';
+  for(let i=0;i<count;i++){
+    const s=document.createElement('i');s.className='word-star';
+    s.style.opacity='0';
+    wordBox.appendChild(s);
+  }
+}
+
+function formStars(text){
+  ensureWordStars();wordBox.classList.add('on');
+  const {pts,W,H}=buildPointCloud(text),stars=[...wordBox.children];
+  const maxW=Math.min(innerWidth*.88,900),maxH=Math.min(innerHeight*.30,260),scale=Math.min(maxW/W,maxH/H);
+  const left=(innerWidth-W*scale)/2,top=Math.max(24,innerHeight*.08);
+  stars.forEach((s,i)=>{
+    const p=pts[i%pts.length];
+    const jitter=i>=pts.length?2.2:0;
+    const x=left+p.x*scale+(Math.random()-.5)*jitter;
+    const y=top+p.y*scale+(Math.random()-.5)*jitter;
+    s.style.transitionDelay=(Math.random()*.18)+'s';
+    s.style.transform=`translate3d(${x}px,${y}px,0) scale(${.65+Math.random()*.85})`;
+    s.style.opacity=i<Math.min(stars.length,pts.length*1.2)?(.58+Math.random()*.42):'0';
+  });
+}
+
+function scatterWordStars(){
+  const stars=[...wordBox.children];
+  stars.forEach(s=>{
+    s.style.transitionDelay=(Math.random()*.12)+'s';
+    s.style.transform=`translate3d(${Math.random()*innerWidth}px,${Math.random()*innerHeight}px,0) scale(${.35+Math.random()*.6})`;
+    s.style.opacity=.15+Math.random()*.45;
+  });
+}
+
+function finalStarSequence(){
+  clearWordStars();ensureWordStars();
+  scatterWordStars();wordBox.classList.add('on');
+  const sequence=[
+    [700,'NAILA'],
+    [3300,'TE QUIERO'],
+    [6100,'FELIZ CUMPLEAÑOS'],
+    [9800,'♥']
+  ];
+  sequence.forEach(([ms,text])=>wordTimers.push(setTimeout(()=>formStars(text),ms)));
+  wordTimers.push(setTimeout(()=>scatterWordStars(),12100));
+  wordTimers.push(setTimeout(()=>{wordBox.classList.remove('on')},13600));
+}
+
+function swap(n){
+  canTap=false;hint.classList.remove('on');fade.classList.add('on');
+  setTimeout(()=>{
+    step=n;img.src=scenes[n];wake.style.display='none';wakeBtn.style.display=n===0?'inline-block':'none';tap.style.display=n===0?'none':'block';replay.style.display='none';fade.classList.remove('on');
+    if(n===2){burst();setTimeout(()=>{canTap=true;hint.classList.add('on')},1800)}
+    else if(n>2&&n<5){setTimeout(()=>{canTap=true;hint.classList.add('on')},650)}
+    else if(n===5){tap.style.display='none';replay.style.display='inline-block';hint.classList.remove('on');finalStarSequence()}
+  },280)
+}
+
+function burst(){
+  for(let i=0;i<90;i++){
+    const c=document.createElement('span');c.className='confetti';c.style.left=(Math.random()*100)+'vw';
+    c.style.background=['#ef6680','#f3c58b','#fff0d0','#d966e9','#7bc6e8'][Math.floor(Math.random()*5)];
+    c.style.setProperty('--dx',(Math.random()*180-90)+'px');c.style.animationDuration=(2.8+Math.random()*2.5)+'s';c.style.animationDelay=(Math.random()*.35)+'s';
+    document.body.appendChild(c);setTimeout(()=>c.remove(),5600)
+  }
+}
+
+function tryMusic(){
+  music.play().then(()=>{musicBtn.style.display='inline-block';musicBtn.textContent='♫ Música: sí'}).catch(()=>{musicBtn.style.display='inline-block';musicBtn.textContent='♫ Música'})
+}
+
+function startExperience(){tryMusic();wakeBtn.disabled=true;swap(1);setTimeout(()=>{wakeBtn.disabled=false;swap(2)},1550)}
+wakeBtn.addEventListener('click',startExperience);
+wake.addEventListener('click',e=>{e.stopPropagation();startExperience()});
+img.addEventListener('click',()=>{if(step===0)startExperience()});
+tap.addEventListener('click',()=>{if(!canTap)return;if(step===2)swap(3);else if(step===3)swap(4);else if(step===4)swap(5)});
+replay.addEventListener('click',()=>{clearWordStars();replay.style.display='none';canTap=false;swap(0)});
+musicBtn.addEventListener('click',()=>{if(music.paused){music.play().catch(()=>{});musicBtn.textContent='♫ Música: sí'}else{music.pause();musicBtn.textContent='♫ Música: no'}});
+music.addEventListener('error',()=>{musicBtn.style.display='none'});
+</script>
+</body>
+</html>
